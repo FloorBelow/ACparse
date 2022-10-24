@@ -14,16 +14,30 @@ namespace ACSharp {
 		public string name;
 		uint version;
 		uint entryCount;
+
+		//TODO DEPRECATE - USED IN WRITING
 		long idxTableOffset;
 		long idxTableLength;
 		long nameTableOffset;
 		long nameTableLength;
+
+		FILETABLE[] fileTables;
 		public DATAFILEENTRY[] datafileTable;
 		//IDXENTRY[] idxTable;
 		//NAMEENTRY[] nameTable
 
 		//maybe?
 		bool edited;
+
+		struct FILETABLE {
+			public uint datafileCount;
+			public uint unk1;
+			public long indexTableOffset;
+			public long nextFileTableOffset;
+			public uint datafileStart;
+			public uint datafileEnd;
+			public long nameTableOffset;
+        }
 
 		public struct DATAFILEENTRY {
 			public long dataOffset;
@@ -66,37 +80,44 @@ namespace ACSharp {
 			//DataHeader
 			reader.BaseStream.Seek(reader.ReadUInt32(), SeekOrigin.Begin);
 			entryCount = reader.ReadUInt32();
-			reader.BaseStream.Seek(28, SeekOrigin.Current);
-
-			//FileData
-			reader.BaseStream.Seek(reader.ReadUInt32(), SeekOrigin.Begin);
-			ACConsole.Assert(reader.ReadUInt32() == entryCount);
-			reader.BaseStream.Seek(4, SeekOrigin.Current);
-			idxTableOffset = reader.ReadInt64();
-			reader.BaseStream.Seek(16, SeekOrigin.Current);
-			nameTableOffset = reader.ReadInt64();
-
-			//idxTable
-			reader.BaseStream.Seek(idxTableOffset, SeekOrigin.Begin);
-
 			datafileTable = new DATAFILEENTRY[entryCount];
-			for(int i = 0; i < entryCount; i++) {
-				datafileTable[i] = new DATAFILEENTRY() { dataOffset = reader.ReadInt64(), id = reader.ReadUInt32(), dataSize = reader.ReadUInt32() };
-				//ACConsole.WriteLine($"{idxTable[i].id} - {idxTable[i].dataOffset} - {idxTable[i].dataSize}");
-			}
-			idxTableLength = reader.BaseStream.Position - idxTableOffset;
-			
 
-			//nameTable
-			reader.BaseStream.Seek(nameTableOffset, SeekOrigin.Begin);
-			for (int i = 0; i < entryCount; i++) {
-				reader.BaseStream.Seek(44, SeekOrigin.Current);
-				datafileTable[i].name = String.Concat(reader.ReadChars(128));
-				datafileTable[i].name = datafileTable[i].name.TrimEnd('\0');
-				reader.BaseStream.Seek(16, SeekOrigin.Current);
-				//ACConsole.WriteLine($"{datafileTable[i].name} - {datafileTable[i].id} - {datafileTable[i].dataOffset} - {datafileTable[i].dataSize}");
+			reader.BaseStream.Seek(24, SeekOrigin.Current);
+			fileTables = new FILETABLE[reader.ReadUInt32()];
+			long nextTableOffset = reader.ReadUInt32();
+
+			for (int fileTable = 0; fileTable < fileTables.Length; fileTable++) {
+				reader.BaseStream.Seek(nextTableOffset, SeekOrigin.Begin);
+				fileTables[fileTable] = new FILETABLE() {
+					datafileCount = reader.ReadUInt32(),
+					unk1 = reader.ReadUInt32(),
+					indexTableOffset = reader.ReadInt64(),
+					nextFileTableOffset = reader.ReadInt64(),
+					datafileStart = reader.ReadUInt32(),
+					datafileEnd = reader.ReadUInt32(),
+					nameTableOffset = reader.ReadInt64()
+				};
+				nextTableOffset = fileTables[fileTable].nextFileTableOffset;
+
+
+				reader.BaseStream.Seek(fileTables[fileTable].indexTableOffset, SeekOrigin.Begin);
+				for (uint i =0; i < fileTables[fileTable].datafileCount; i++) {
+					datafileTable[i + fileTables[fileTable].datafileStart] = new DATAFILEENTRY() { dataOffset = reader.ReadInt64(), id = reader.ReadUInt32(), dataSize = reader.ReadUInt32() };
+				}
+
+				reader.BaseStream.Seek(fileTables[fileTable].nameTableOffset, SeekOrigin.Begin);
+				for (uint i = 0; i < fileTables[fileTable].datafileCount; i++) {
+					reader.BaseStream.Seek(44, SeekOrigin.Current);
+					datafileTable[i + fileTables[fileTable].datafileStart].name = String.Concat(reader.ReadChars(128));
+					datafileTable[i + fileTables[fileTable].datafileStart].name = datafileTable[i].name.TrimEnd('\0');
+					//TODO does this break stuff on export?
+					if (datafileTable[i + fileTables[fileTable].datafileStart].name == "") datafileTable[i + fileTables[fileTable].datafileStart].name = datafileTable[i + fileTables[fileTable].datafileStart].id.ToString();
+					reader.BaseStream.Seek(16, SeekOrigin.Current);
+				}
 			}
-			nameTableLength = reader.BaseStream.Position - nameTableOffset;
+
+			//idxTableLength = reader.BaseStream.Position - idxTableOffset;
+			//nameTableLength = reader.BaseStream.Position - nameTableOffset;
 			//Console.WriteLine($"IDXTABLE  {idxTableLength}");
 			//Console.WriteLine($"NAMETABLE {nameTableLength}");
 			reader.Close();
@@ -319,7 +340,13 @@ namespace ACSharp {
 			return uncompressedData.ToArray();
 		}
 
-		public ForgeFile[] OpenDatafile(int datafileIndex, Dictionary<uint, ForgeFile> fileDict = null, bool readResources = true) {
+		public enum ReadResourceType {
+			Full,
+			Empty,
+			Raw
+        }
+
+		public ForgeFile[] OpenDatafile(int datafileIndex, Dictionary<uint, ForgeFile> fileDict = null, ReadResourceType readType = ReadResourceType.Full) {
 			byte[] uncompressedData = DecompressDatafile(datafileIndex);
 			if (uncompressedData.Length == 0) return null;
 			BinaryReader r = new BinaryReader(new MemoryStream(uncompressedData));
@@ -346,16 +373,21 @@ namespace ACSharp {
 				int dataSize = r.ReadInt32();
 				int nameLength = r.ReadInt32();
 
-				if(nameLength < 0) { Console.WriteLine("OHNO NAME LENGTH WRONG"); break; }
+				//if(nameLength < 0) { Console.WriteLine("OHNO NAME LENGTH WRONG"); break; }
+				//TODO does this break stuff on export?
+				if (nameLength == 0) files[i].name = files[i].fileID.ToString();
+				else files[i].name = String.Concat(r.ReadChars(nameLength));
 
-				files[i].name = String.Concat(r.ReadChars(nameLength));
+				
+
 				r.BaseStream.Seek(1, SeekOrigin.Current);
 				if(files[i].fileType == Entity.id)
 				//Console.WriteLine(files[i].name);
 				//if(files[i].fileType == Mesh.id) Console.WriteLine($"{files[i].name} - {datafileTable[datafileIndex].name}");
 				files[i].datafileOffset = r.BaseStream.Position;
 				r.BaseStream.Seek(1, SeekOrigin.Current);
-				if(readResources) files[i].resource = ForgeFile.ReadResource(r.ReadBytes(dataSize - 1));
+				if (readType == ReadResourceType.Full) files[i].resource = ForgeFile.ReadResource(r.ReadBytes(dataSize - 1));
+				else if (readType == ReadResourceType.Raw) files[i].resource = new ResourceRawData(r.ReadBytes(dataSize - 1));
 				offset += sizes[i];
 				r.BaseStream.Seek(offset, SeekOrigin.Begin);
 			}

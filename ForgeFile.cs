@@ -81,4 +81,9 @@ namespace ACSharp {
 		public ResourceUnknown(BinaryReader reader) { //data = reader.ReadBytes((int)(reader.BaseStream.Length - reader.BaseStream.Position)); }
 		}
 	}
+
+	public class ResourceRawData : Resource {
+		public byte[] data;
+		public ResourceRawData(byte[] data) { this.data = data; }
+    }
 }
