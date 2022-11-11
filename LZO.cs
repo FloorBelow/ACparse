@@ -28,7 +28,7 @@ namespace ACSharp {
             LZO1C = 5
         }
 
-        public static byte[] Decompress(byte[] input, ushort decompressedSize, int compressionType) {
+        public static byte[] Decompress(byte[] input, int decompressedSize, int compressionType) {
 #if WIN32
             if (__lzo_init_v2_32(1, -1, -1, -1, -1, -1, -1, -1, -1, -1) != 0)
 #else

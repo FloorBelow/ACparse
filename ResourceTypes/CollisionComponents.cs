@@ -9,7 +9,7 @@ namespace ACSharp.ResourceTypes {
 
 		public InertComponent(BinaryReader reader) {
 			reader.BaseStream.Seek(9, SeekOrigin.Current);
-			if (Games.current == Games.AC2) reader.BaseStream.Seek(2, SeekOrigin.Current);
+			if (Games.current == Game.AC2) reader.BaseStream.Seek(2, SeekOrigin.Current);
 			rigidBody = ForgeFile.ReadResource<RigidBody>(reader);
 		}
 	}
@@ -22,7 +22,7 @@ namespace ACSharp.ResourceTypes {
 		public RigidBody(BinaryReader reader) {
 			collisionFilterInfo = ForgeFile.ReadResource<CollisionFilterInfo>(reader);
 			reader.BaseStream.Seek(121, SeekOrigin.Current);
-			if(Games.current == Games.AC1) //TODO ploblems with ac2 rigidbody
+			if(Games.current == Game.AC1) //TODO ploblems with ac2 rigidbody
 			boundingVolume = ForgeFile.ReadResource<BoundingVolume>(reader);
 		}
 	}
@@ -33,7 +33,7 @@ namespace ACSharp.ResourceTypes {
 		public CollisionFilterInfo(BinaryReader reader) {
 			if (reader.ReadUInt32() == 11) reader.BaseStream.Seek(353, SeekOrigin.Current);
 			reader.BaseStream.Seek(10, SeekOrigin.Current);
-			if (Games.current == Games.AC2) reader.BaseStream.Seek(6, SeekOrigin.Current);
+			if (Games.current == Game.AC2) reader.BaseStream.Seek(6, SeekOrigin.Current);
 		}
 	}
 

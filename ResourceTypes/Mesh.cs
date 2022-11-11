@@ -18,7 +18,7 @@ namespace ACSharp.ResourceTypes {
 		public VERT[] verts;
 		public ushort[] idx;
 		public CompiledMesh(BinaryReader reader) {
-			if(Games.current == Games.AC1) {
+			if(Games.current == Game.AC1) {
 				reader.BaseStream.Seek(8, SeekOrigin.Current);
 				uint vertTableWidth = reader.ReadUInt32();
 				uint vertTableLength = reader.ReadUInt32();

@@ -11,7 +11,7 @@ namespace ACSharp.ResourceTypes {
 			uint count = reader.ReadUInt32();
 			files = new uint[count];
 			for (int i = 0; i < count; i++) {
-				if (Games.current == Games.AC2) reader.BaseStream.Seek(2, SeekOrigin.Current);
+				if (Games.current == Game.AC2) reader.BaseStream.Seek(2, SeekOrigin.Current);
 				files[i] = reader.ReadUInt32();
 			}
 		}
@@ -29,7 +29,7 @@ namespace ACSharp.ResourceTypes {
 			for (int i = 0; i < 16; i++) {
 				transformationMatrix[i] = reader.ReadSingle();
 			}
-			if(Games.current == Games.AC1) {
+			if(Games.current == Game.AC1) {
 				reader.BaseStream.Seek(6, SeekOrigin.Current);
 				Resource resource = ForgeFile.ReadResource(reader);
 				if (resource is MaterialOverrider) {

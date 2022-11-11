@@ -7,27 +7,28 @@ using System.Threading.Tasks;
 using System.IO;
 
 namespace ACSharp {
-	public struct Game {
-		public string name;
-		public int filedataLength;
-		public int subfileHeaderSize;
+	public enum Game : int {
+		AC1 = 1,
+		AC2 = 2,
+		ACR = 3,
+		ACFR = 4,
 
-		public static bool operator ==(Game g1, Game g2) { return g1.Equals(g2); }
-		public static bool operator !=(Game g1, Game g2) { return !g1.Equals(g2); }
+		AC3 = 5,
+		ACV = 6,
+		ACGA = 7,
+		ACC = 8,
 
-		public override bool Equals(object obj) {
-			if (!(obj is Game)) return false;
-			return ((Game)obj).name == name;
-		}
-	}
+		ACU = 9,
+		ACVI = 10,
+
+		ACE = 11,
+		ACD = 12,
+		ACK = 13
+    }
 
 	public static class Games {
 		public static Game current;
-		public static readonly Game AC1 = new Game() { name = "AC1", filedataLength = 440, subfileHeaderSize = 8 };
-		public static readonly Game AC2 = new Game() { name = "AC2", filedataLength = 440, subfileHeaderSize = 10 };
-	}
-
-	
+    }
 
 
 	public static class ACConsole {

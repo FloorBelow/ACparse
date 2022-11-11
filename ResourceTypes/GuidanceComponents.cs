@@ -23,7 +23,7 @@ namespace ACSharp.ResourceTypes {
 		public const uint id = 877635161;
 
 		public GuidanceObject(BinaryReader reader) {
-			if(Games.current == Games.AC1) reader.BaseStream.Seek(45, SeekOrigin.Current);
+			if(Games.current == Game.AC1) reader.BaseStream.Seek(45, SeekOrigin.Current);
 			else reader.BaseStream.Seek(29, SeekOrigin.Current);
 		}
 	}

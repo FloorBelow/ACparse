@@ -7,15 +7,15 @@ using System.Reflection;
 namespace ACSharp {
 	public class ForgeFile {
 		public Forge forge;
-		public uint datafileID;
+		public ulong datafileID;
 		public long datafileOffset;
-		public uint fileID;
+		public ulong fileID;
 		public uint fileType;
 		public string name;
 		//public byte[] data;
 		public Resource resource;
 
-		public ForgeFile(Forge forge, uint datafileID, uint fileID) { this.forge = forge; this.datafileID = datafileID; this.fileID = fileID; }
+		public ForgeFile(Forge forge, ulong datafileID, ulong fileID) { this.forge = forge; this.datafileID = datafileID; this.fileID = fileID; }
 		public static Resource ReadResource(byte[] bytes) { return ReadResource(new BinaryReader(new MemoryStream(bytes))); }
 
 		public static T ReadResource<T>(BinaryReader reader) where T : Resource {
@@ -25,7 +25,7 @@ namespace ACSharp {
 		}
 
 		public static Resource ReadResource(BinaryReader reader) {
-			reader.BaseStream.Seek(4, SeekOrigin.Current);
+			reader.Seek(Games.current >= Game.ACE ? 8 : 4);
 			uint type = reader.ReadUInt32();
 			switch (type) {
 

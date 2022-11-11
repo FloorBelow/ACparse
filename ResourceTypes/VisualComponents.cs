@@ -9,12 +9,12 @@ namespace ACSharp.ResourceTypes {
 
 		public Visual(BinaryReader reader) {
 			reader.BaseStream.Seek(6, SeekOrigin.Current);
-			if (Games.current == Games.AC2) reader.BaseStream.Seek(2, SeekOrigin.Current);
+			if (Games.current == Game.AC2) reader.BaseStream.Seek(2, SeekOrigin.Current);
 			Resource resource = ForgeFile.ReadResource(reader);
 			if (resource is LODSelector) lodSelectorInstance = (LODSelector)resource;
 			else if (resource is MeshInstanceData) meshInstanceData = (MeshInstanceData)resource;
 			reader.BaseStream.Seek(10, SeekOrigin.Current);
-			if(Games.current == Games.AC1) reader.BaseStream.Seek(1, SeekOrigin.Current);
+			if(Games.current == Game.AC1) reader.BaseStream.Seek(1, SeekOrigin.Current);
 		}
 	}
 
@@ -48,7 +48,7 @@ namespace ACSharp.ResourceTypes {
 		public MeshInstanceData(BinaryReader reader) {
 			reader.BaseStream.Seek(1, SeekOrigin.Current);
 			meshID = reader.ReadUInt32();
-			if(Games.current == Games.AC1) {
+			if(Games.current == Game.AC1) {
 				reader.BaseStream.Seek(4, SeekOrigin.Current);
 				uint daCount = reader.ReadUInt32();
 				for (int i = 0; i < daCount; i++) {
@@ -61,7 +61,7 @@ namespace ACSharp.ResourceTypes {
 				}
 				reader.BaseStream.Seek(1, SeekOrigin.Current);
 				compiledMeshInstance = ForgeFile.ReadResource<CompiledMeshInstance>(reader);
-			} else if (Games.current == Games.AC2) {
+			} else if (Games.current == Game.AC2) {
 				reader.BaseStream.Seek(15, SeekOrigin.Current);
 				uint count1 = reader.ReadUInt32();
 				reader.BaseStream.Seek(count1 + 16, SeekOrigin.Current);
